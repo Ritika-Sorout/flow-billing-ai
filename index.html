@@ -1,25 +1,477 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>InvoiceFlow — Modern Invoice Management</title>
-    <meta name="description" content="InvoiceFlow: Create, approve, and send invoices with live PDF preview." />
-    <meta name="author" content="InvoiceFlow" />
-    <link rel="canonical" href="/" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
 
-    <meta property="og:title" content="InvoiceFlow — Modern Invoice Management" />
-    <meta property="og:description" content="Build and send beautiful invoices. Approvals, PDF download, and sharing." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+        /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+        All colors MUST be HSL.
+        */
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+        @layer base {
+          :root {
+            --background: 45 100% 96%;
+            --foreground: 150 25% 25%;
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+            --card: 0 0% 100%;
+            --card-foreground: 150 25% 25%;
+
+            --popover: 0 0% 100%;
+            --popover-foreground: 150 25% 25%;
+
+            /* Pastel green and cream palette */
+            --primary: 140 40% 75%;
+            --primary-foreground: 150 25% 25%;
+
+            --secondary: 45 60% 92%;
+            --secondary-foreground: 150 25% 25%;
+
+            --muted: 45 30% 88%;
+            --muted-foreground: 150 15% 45%;
+
+            --accent: 135 50% 80%;
+            --accent-foreground: 150 25% 25%;
+
+            --destructive: 0 65% 75%;
+            --destructive-foreground: 150 25% 25%;
+
+            --border: 45 40% 85%;
+            --input: 45 40% 85%;
+            --ring: 140 40% 75%;
+
+            --radius: 0.75rem;
+
+            --sidebar-background: 45 80% 94%;
+            --sidebar-foreground: 150 25% 25%;
+            --sidebar-primary: 140 40% 75%;
+            --sidebar-primary-foreground: 150 25% 25%;
+            --sidebar-accent: 45 50% 90%;
+            --sidebar-accent-foreground: 150 25% 25%;
+            --sidebar-border: 45 40% 85%;
+            --sidebar-ring: 140 40% 75%;
+
+            /* Extras */
+            --primary-glow: 140 50% 85%;
+            --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+            --shadow-elegant: 0 8px 25px -8px hsl(var(--primary) / 0.2);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+
+          .dark {
+            --background: 150 15% 8%;
+            --foreground: 45 80% 95%;
+
+            --card: 150 15% 12%;
+            --card-foreground: 45 80% 95%;
+
+            --popover: 150 15% 12%;
+            --popover-foreground: 45 80% 95%;
+
+            --primary: 140 30% 60%;
+            --primary-foreground: 150 15% 8%;
+
+            --secondary: 150 10% 18%;
+            --secondary-foreground: 45 80% 95%;
+
+            --muted: 150 10% 18%;
+            --muted-foreground: 45 30% 70%;
+
+            --accent: 135 25% 65%;
+            --accent-foreground: 150 15% 8%;
+
+            --destructive: 0 45% 55%;
+            --destructive-foreground: 45 80% 95%;
+
+            --border: 150 10% 18%;
+            --input: 150 10% 18%;
+            --ring: 140 30% 60%;
+            --sidebar-background: 150 15% 6%;
+            --sidebar-foreground: 45 80% 95%;
+            --sidebar-primary: 140 30% 60%;
+            --sidebar-primary-foreground: 150 15% 8%;
+            --sidebar-accent: 150 10% 15%;
+            --sidebar-accent-foreground: 45 80% 95%;
+            --sidebar-border: 150 10% 15%;
+            --sidebar-ring: 140 30% 60%;
+          }
+        }
+
+        @layer base {
+          * {
+            @apply border-border;
+          }
+
+          body {
+            @apply bg-background text-foreground;
+            font-family: 'Inter', system-ui, sans-serif;
+          }
+        }
+
+        .btn-primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            transition: var(--transition-smooth);
+            border-radius: var(--radius);
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background: hsl(var(--accent));
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-elegant);
+        }
+
+        .card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            box-shadow: 0 4px 12px -4px hsl(var(--primary) / 0.1);
+        }
+
+        .input-field {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 0.25rem);
+            color: hsl(var(--foreground));
+            transition: var(--transition-smooth);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: hsl(var(--primary));
+            box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2" style="color: hsl(var(--primary-foreground));">Invoice Generator</h1>
+            <p class="text-lg" style="color: hsl(var(--muted-foreground));">Create beautiful invoices with pastel elegance</p>
+        </div>
+
+        <!-- Invoice Form -->
+        <div class="card p-8 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- From Section -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: hsl(var(--primary-foreground));">From</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="fromName" placeholder="Your Business Name" class="input-field w-full p-3">
+                        <input type="text" id="fromAddress" placeholder="Address" class="input-field w-full p-3">
+                        <input type="email" id="fromEmail" placeholder="Email" class="input-field w-full p-3">
+                        <input type="tel" id="fromPhone" placeholder="Phone" class="input-field w-full p-3">
+                    </div>
+                </div>
+
+                <!-- To Section -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4" style="color: hsl(var(--primary-foreground));">To</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="toName" placeholder="Client Name" class="input-field w-full p-3">
+                        <input type="text" id="toAddress" placeholder="Client Address" class="input-field w-full p-3">
+                        <input type="email" id="toEmail" placeholder="Client Email" class="input-field w-full p-3">
+                        <input type="tel" id="toPhone" placeholder="Client Phone" class="input-field w-full p-3">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Invoice Details -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div>
+                    <label class="block text-sm font-medium mb-2" style="color: hsl(var(--muted-foreground));">Invoice Number</label>
+                    <input type="text" id="invoiceNumber" value="INV-001" class="input-field w-full p-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2" style="color: hsl(var(--muted-foreground));">Date</label>
+                    <input type="date" id="invoiceDate" class="input-field w-full p-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2" style="color: hsl(var(--muted-foreground));">Due Date</label>
+                    <input type="date" id="dueDate" class="input-field w-full p-3">
+                </div>
+            </div>
+
+            <!-- Items Section -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold" style="color: hsl(var(--primary-foreground));">Items</h3>
+                    <button onclick="addItem()" class="btn-primary px-4 py-2">+ Add Item</button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr style="background: hsl(var(--secondary));">
+                                <th class="text-left p-3 rounded-tl-lg">Description</th>
+                                <th class="text-left p-3">Quantity</th>
+                                <th class="text-left p-3">Rate</th>
+                                <th class="text-left p-3 rounded-tr-lg">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTable">
+                            <tr>
+                                <td class="p-3"><input type="text" placeholder="Item description" class="input-field w-full p-2" onchange="calculateTotal()"></td>
+                                <td class="p-3"><input type="number" value="1" min="1" class="input-field w-full p-2" onchange="calculateRow(this)"></td>
+                                <td class="p-3"><input type="number" step="0.01" placeholder="0.00" class="input-field w-full p-2" onchange="calculateRow(this)"></td>
+                                <td class="p-3"><span class="font-medium">$0.00</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Total Section -->
+            <div class="flex justify-end">
+                <div class="w-full md:w-1/3">
+                    <div class="card p-6" style="background: hsl(var(--secondary));">
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span id="subtotal" class="font-medium">$0.00</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tax (10%):</span>
+                                <span id="tax" class="font-medium">$0.00</span>
+                            </div>
+                            <hr style="border-color: hsl(var(--border));">
+                            <div class="flex justify-between text-xl font-bold">
+                                <span>Total:</span>
+                                <span id="total">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4 mt-8 no-print">
+                <button onclick="generateInvoice()" class="btn-primary px-6 py-3">Generate Invoice</button>
+                <button onclick="printInvoice()" class="btn-primary px-6 py-3">Print Invoice</button>
+                <button onclick="clearForm()" class="px-6 py-3 rounded-lg font-medium border-2" style="border-color: hsl(var(--border)); color: hsl(var(--muted-foreground));">Clear Form</button>
+            </div>
+        </div>
+
+        <!-- Generated Invoice Preview -->
+        <div id="invoicePreview" class="card p-8 hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold" style="color: hsl(var(--primary-foreground));">INVOICE</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h4 class="font-semibold mb-2" style="color: hsl(var(--primary-foreground));">From:</h4>
+                    <div id="previewFrom" class="space-y-1" style="color: hsl(var(--muted-foreground));"></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2" style="color: hsl(var(--primary-foreground));">To:</h4>
+                    <div id="previewTo" class="space-y-1" style="color: hsl(var(--muted-foreground));"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div>
+                    <span class="font-semibold">Invoice #: </span>
+                    <span id="previewInvoiceNumber"></span>
+                </div>
+                <div>
+                    <span class="font-semibold">Date: </span>
+                    <span id="previewDate"></span>
+                </div>
+                <div>
+                    <span class="font-semibold">Due Date: </span>
+                    <span id="previewDueDate"></span>
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <table class="w-full">
+                    <thead>
+                        <tr style="background: hsl(var(--secondary));">
+                            <th class="text-left p-3 rounded-tl-lg">Description</th>
+                            <th class="text-left p-3">Qty</th>
+                            <th class="text-left p-3">Rate</th>
+                            <th class="text-left p-3 rounded-tr-lg">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewItems"></tbody>
+                </table>
+            </div>
+
+            <div class="flex justify-end">
+                <div class="w-full md:w-1/3">
+                    <div class="card p-6" style="background: hsl(var(--secondary));">
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span id="previewSubtotal" class="font-medium"></span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Tax (10%):</span>
+                                <span id="previewTax" class="font-medium"></span>
+                            </div>
+                            <hr style="border-color: hsl(var(--border));">
+                            <div class="flex justify-between text-xl font-bold">
+                                <span>Total:</span>
+                                <span id="previewTotal"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+        
+        // Set due date to 30 days from today
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30);
+        document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+
+        function addItem() {
+            const tbody = document.getElementById('itemsTable');
+            const newRow = tbody.insertRow();
+            newRow.innerHTML = `
+                <td class="p-3"><input type="text" placeholder="Item description" class="input-field w-full p-2" onchange="calculateTotal()"></td>
+                <td class="p-3"><input type="number" value="1" min="1" class="input-field w-full p-2" onchange="calculateRow(this)"></td>
+                <td class="p-3"><input type="number" step="0.01" placeholder="0.00" class="input-field w-full p-2" onchange="calculateRow(this)"></td>
+                <td class="p-3"><span class="font-medium">$0.00</span></td>
+            `;
+        }
+
+        function calculateRow(element) {
+            const row = element.closest('tr');
+            const quantity = parseFloat(row.cells[1].querySelector('input').value) || 0;
+            const rate = parseFloat(row.cells[2].querySelector('input').value) || 0;
+            const amount = quantity * rate;
+            row.cells[3].querySelector('span').textContent = `$${amount.toFixed(2)}`;
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const rows = document.querySelectorAll('#itemsTable tr');
+            let subtotal = 0;
+            
+            rows.forEach(row => {
+                const quantity = parseFloat(row.cells[1].querySelector('input').value) || 0;
+                const rate = parseFloat(row.cells[2].querySelector('input').value) || 0;
+                subtotal += quantity * rate;
+            });
+            
+            const tax = subtotal * 0.1;
+            const total = subtotal + tax;
+            
+            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
+            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        function generateInvoice() {
+            // Populate preview with form data
+            const fromData = [
+                document.getElementById('fromName').value,
+                document.getElementById('fromAddress').value,
+                document.getElementById('fromEmail').value,
+                document.getElementById('fromPhone').value
+            ].filter(item => item.trim() !== '');
+            
+            const toData = [
+                document.getElementById('toName').value,
+                document.getElementById('toAddress').value,
+                document.getElementById('toEmail').value,
+                document.getElementById('toPhone').value
+            ].filter(item => item.trim() !== '');
+            
+            document.getElementById('previewFrom').innerHTML = fromData.map(item => `<div>${item}</div>`).join('');
+            document.getElementById('previewTo').innerHTML = toData.map(item => `<div>${item}</div>`).join('');
+            
+            document.getElementById('previewInvoiceNumber').textContent = document.getElementById('invoiceNumber').value;
+            document.getElementById('previewDate').textContent = document.getElementById('invoiceDate').value;
+            document.getElementById('previewDueDate').textContent = document.getElementById('dueDate').value;
+            
+            // Populate items
+            const rows = document.querySelectorAll('#itemsTable tr');
+            const previewItems = document.getElementById('previewItems');
+            previewItems.innerHTML = '';
+            
+            rows.forEach(row => {
+                const description = row.cells[0].querySelector('input').value;
+                const quantity = row.cells[1].querySelector('input').value;
+                const rate = parseFloat(row.cells[2].querySelector('input').value) || 0;
+                const amount = quantity * rate;
+                
+                if (description.trim() !== '') {
+                    const newRow = previewItems.insertRow();
+                    newRow.innerHTML = `
+                        <td class="p-3">${description}</td>
+                        <td class="p-3">${quantity}</td>
+                        <td class="p-3">$${rate.toFixed(2)}</td>
+                        <td class="p-3">$${amount.toFixed(2)}</td>
+                    `;
+                }
+            });
+            
+            // Copy totals
+            document.getElementById('previewSubtotal').textContent = document.getElementById('subtotal').textContent;
+            document.getElementById('previewTax').textContent = document.getElementById('tax').textContent;
+            document.getElementById('previewTotal').textContent = document.getElementById('total').textContent;
+            
+            // Show preview
+            document.getElementById('invoicePreview').classList.remove('hidden');
+            document.getElementById('invoicePreview').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function printInvoice() {
+            generateInvoice();
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        function clearForm() {
+            if (confirm('Are you sure you want to clear all data?')) {
+                document.querySelectorAll('input').forEach(input => {
+                    if (input.type !== 'date') {
+                        input.value = '';
+                    }
+                });
+                document.getElementById('invoiceNumber').value = 'INV-001';
+                document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 30);
+                document.getElementById('dueDate').value = dueDate.toISOString().split('T')[0];
+                
+                // Reset items table to one row
+                const tbody = document.getElementById('itemsTable');
+                tbody.innerHTML = `
+                    <tr>
+                        <td class="p-3"><input type="text" placeholder="Item description" class="input-field w-full p-2" onchange="calculateTotal()"></td>
+                        <td class="p-3"><input type="number" value="1" min="1" class="input-field w-full p-2" onchange="calculateRow(this)"></td>
+                        <td class="p-3"><input type="number" step="0.01" placeholder="0.00" class="input-field w-full p-2" onchange="calculateRow(this)"></td>
+                        <td class="p-3"><span class="font-medium">$0.00</span></td>
+                    </tr>
+                `;
+                
+                calculateTotal();
+                document.getElementById('invoicePreview').classList.add('hidden');
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96dec33dd7da5983',t:'MTc1NDk4OTAyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
