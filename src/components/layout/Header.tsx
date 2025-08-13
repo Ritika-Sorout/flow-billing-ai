@@ -18,7 +18,7 @@ export default function Header() {
           </Link>
           <nav className="ml-6 hidden md:flex items-center gap-1">
             <NavLink to="/" end className={linkCls}>
-              <LayoutGrid className="h-4 w-4 mr-2" /> Dashboard
+              <LayoutGrid className="h-4 w-4 mr-2" /> Home
             </NavLink>
             <NavLink to="/invoices" className={linkCls}>
               <FileText className="h-4 w-4 mr-2" /> Invoices

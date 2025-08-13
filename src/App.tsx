@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import Dashboard from "./pages/Dashboard";
+import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import InvoicesList from "./pages/InvoicesList";
 import InvoiceNew from "./pages/InvoiceNew";
@@ -24,7 +25,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<Index />} />
               <Route path="/invoices" element={<InvoicesList />} />
               <Route path="/invoices/new" element={<InvoiceNew />} />
               <Route path="/invoice/:id" element={<InvoiceView />} />
